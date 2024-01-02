@@ -16,9 +16,24 @@ print("""
 
 """)
 
+def mortgage_calculator(loan_amount, interest_rate, amortization_term):
+    interest_rate_month = interest_rate/100/12
+    monthly_payment = (loan_amount * interest_rate_month)/(1-(1+interest_rate_month)**(-1 * amortization_term))
+    print("Your monthly payment will be: " + str(monthly_payment))
+    print("**Please be advised that this is only principal and interest payment (not including property tax or insurance)**")
+
+    
+def mortgage_calculator_with_house_price(house_price, down_payment_percentage, interest_rate, amortization_term):
+    print("not configured yet")
 
 
-print("""Hello, please select one of the options: 
+    
+# def loan_qualification(income, liabilities)
+    
+
+while True:
+
+    print("""Main menu:
       
       1. Calculate mortgage payment
 
@@ -28,15 +43,27 @@ print("""Hello, please select one of the options:
 
       4. Helpful tips about mortgage
 
+      5. Exit
+
       """)
 
-name = input('Enter your choice: ')
+    choice = input('Enter your choice: ')
+    choice = choice.strip()
 
-# print("you've selected " + name)
-
-if name == '4':
-    print("Mortgage lending is not fun")
-
-def mortgage_calculator(loan_amount, interest_rate, amortization_term)
-    
-def loan_qualification(income, liabilities)
+    if choice == '1':
+        calculation_method = input("Do you wish to calculate payment with house in mind or just simple payment calculator? (Y/N)")
+        if calculation_method == 'Y':
+            house_price = int(input("Enter the price of the house that you wish to buy: "))
+            down_payment_percentage = float(input("How much do you want to put down in percentage?: "))
+            interest_rate = input("Enter the interest rate: ")
+            amortization_term = input("How many years for loan maturity calculated in months (30 years = 360 months, 15 years = 180 months, etc): ")
+            payment = mortgage_calculator_with_house_price(house_price, down_payment_percentage, interest_rate, amortization_term)
+            print(payment)
+        elif calculation_method == 'N':
+            loan_amount = float(input("Enter your loan amount: "))
+            interest_rate = float(input("Enter the interest rate: "))
+            amortization_term = float(input("How many years for loan maturity calculated in months (30 years = 360 months, 15 years = 180 months, etc): "))
+            payment = mortgage_calculator(loan_amount, interest_rate, amortization_term)
+            print(payment)
+    elif choice == '5':
+        break
