@@ -1,4 +1,5 @@
 import random
+import math
 
 print("""
 
@@ -29,50 +30,41 @@ def mortgage_calculator_with_house_price(house_price, down_payment_percentage, i
     loan_amount = round(house_price * (1-(down_payment_percentage/100)),0)
 
     # need to group the FICO score into a group as the mortgage insurance premium is determined by range of FICO
-    fico = int(fico)
-    if fico >= 760:
-        fico = 'a'
-    elif 760 > fico >= 740:
-        fico = 'b'
-    elif 740 > fico >= 720:
-        fico = 'c'
-    elif 720 > fico >= 700:
-        fico = 'd'
-    elif 700 > fico >= 680:
-        fico = 'e'
-    elif 680 > fico >= 660:
-        fico = 'f'
-    elif 660 > fico >= 640:
-        fico = 'g'
-    elif 640 > fico >= 660:
-        fico = 'h'
-    else:
-        print("Ineligible FICO for financing")
-
+    def round_down_to_nearest(num):
+        num_in_units = num / 20
+        unit_num = math.floor(num_in_units)
+        return unit_num * 20
+    
+    if fico >= 780:
+        fico = 760
+    elif fico < 780:
+        fico = int(round_down_to_nearest(fico))
+    
     # down payment percentage is also being categorized into group for determining mortgage insurance premium
     down_payment_percentage = float(down_payment_percentage)
-    if 85 >= (100 - down_payment_percentage) > 80:
-        down_payment_percentage = 85
-    elif 90 >= (100 - down_payment_percentage) > 85:
-        down_payment_percentage = 90
-    elif 95 >= (100 - down_payment_percentage) > 90:
-        down_payment_percentage = 95
-    elif 97 >= (100 - down_payment_percentage) > 95:
-        down_payment_percentage = 97
+    LTV = 100 - down_payment_percentage
+    if   85 >= LTV > 80:
+        LTV = 85
+    elif 90 >= LTV > 85:
+        LTV = 90
+    elif 95 >= LTV > 90:
+        LTV = 95
+    elif 97 >= LTV > 95:
+        LTV = 97
     else:
         print("Ineligible down payment percentage for conventional program. Please at least 3\% \or greater for down payment %.")
-
+    
     ##LTV_range dictionary is for finding insurance premium based on down payment percentage and FICO of the user input.
-    LTV_range = {85:{'a':0.0019, 'b':0.0020, 'c': 0.0023, 'd':0.0025, 'e':0.0028, 'f':0.0038, 'g':0.0040, 'h':0.0044},
-                 90:{'a':0.0028, 'b':0.0038, 'c': 0.0046, 'd':0.0055, 'e':0.0065, 'f':0.0090, 'g':0.0091, 'h':0.0094},
-                 95:{'a':0.0038, 'b':0.0053, 'c': 0.0066, 'd':0.0078, 'e':0.0096, 'f':0.0128, 'g':0.0133, 'h':0.0142},
-                 97:{'a':0.0058, 'b':0.0070, 'c': 0.0087, 'd':0.0099, 'e':0.0121, 'f':0.0154, 'g':0.0165, 'h':0.0186}}
-    mortgage_insurance_premium = LTV_range[down_payment_percentage][fico]
+    LTV_range = {85:{760:0.0019, 740:0.0020, 720: 0.0023, 700:0.0025, 680:0.0028, 660:0.0038, 640:0.0040, 620:0.0044},
+                 90:{760:0.0028, 740:0.0038, 720: 0.0046, 700:0.0055, 680:0.0065, 660:0.0090, 640:0.0091, 620:0.0094},
+                 95:{760:0.0038, 740:0.0053, 720: 0.0066, 700:0.0078, 680:0.0096, 660:0.0128, 640:0.0133, 620:0.0142},
+                 97:{760:0.0058, 740:0.0070, 720: 0.0087, 700:0.0099, 680:0.0121, 660:0.0154, 640:0.0165, 620:0.0186}}
+    mortgage_insurance_premium = LTV_range[LTV][fico]
 
     if down_payment_percentage >= 20:
-        monthly_payment = (house_price * (1-(down_payment_percentage/100)) * interest_rate_month)/(1-(1+interest_rate_month)**(-1 * amortization_term))
+        monthly_payment = (loan_amount * interest_rate_month)/(1-(1+interest_rate_month)**(-1 * amortization_term))
     elif down_payment_percentage < 20:
-        monthly_payment = ((house_price * (1-(down_payment_percentage/100)) * interest_rate_month)/(1-(1+interest_rate_month)**(-1 * amortization_term))) + (house_price * (mortgage_insurance_premium/12))
+        monthly_payment = (loan_amount * interest_rate_month)/(1-(1+interest_rate_month)**(-1 * amortization_term)) + (loan_amount * (mortgage_insurance_premium/12))
     else:
         print("Invalid down payment percentage for conventional program. Please at least 3\% \or greater for down payment %.")
 
@@ -87,17 +79,50 @@ def mortgage_calculator_with_house_price(house_price, down_payment_percentage, i
     
     state = str(state.upper())
     if state == 'CA':
-        monthly_payment += (((house_price * 0.0125) / 12) + (house_price * house_insurance_premium[state]))
+        monthly_MIP = round(loan_amount * (mortgage_insurance_premium/12), 2)
+        monthly_tax = round((house_price * 0.0125 / 12),2)
+        monthly_ins = round((house_price * house_insurance_premium[state])/12, 2)
+        monthly_payment += monthly_tax + monthly_ins
+        monthly_payment_PI = round(monthly_payment - monthly_tax - monthly_ins - monthly_MIP , 2)
     else:
-        monthly_payment += (((house_price * 0.015) / 12) + (house_price * house_insurance_premium[state]))
-        
+        monthly_MIP = round(loan_amount * (mortgage_insurance_premium/12),2)
+        monthly_tax = round((house_price * 0.015 / 12),2)
+        monthly_ins = round((house_price * house_insurance_premium[state])/12,2)
+        monthly_payment += monthly_tax + monthly_ins
+        monthly_payment_PI = round(monthly_payment - monthly_tax - monthly_ins - monthly_MIP , 2)
+            
     monthly_payment_rounded = round(monthly_payment, 2)
-    print("\n Your loan amount is $" + str(loan_amount) + "\n")
-    print("\nYour monthly payment will be: $" + str(monthly_payment_rounded) + "\nThis consists of principal and interest payment of $" + str())
-    print("\n**This includes mortgage insurance premium / estimated property taxes and hazard insurance premium relative to house price**\n")
+    print("\n Your loan amount is $" + str(loan_amount))
+    print("\nYour total monthly payment will be: $" + str(monthly_payment_rounded) + 
+          "\n**This consists of principal and interest payment of $" + str(monthly_payment_PI) + 
+          "\n**Est. Property tax per month: $" + str(monthly_tax) +
+          "\n**Est. Home insurance per month: $" + str(monthly_ins) +
+          "\n**Mortgage insurance premium: $" + str(monthly_MIP))
+    print("\n**Monthly payment total includes mortgage insurance premium, estimated property taxes, and hazard insurance premium relative to the house price**\n")
 
+def userInputIntegerNumberValidation(question):
+    while True:
+        user_input = input(question)
+        try:
+            user_input = int(user_input)
+            break
+        except ValueError:
+            print("No special characters. Please enter numerical value only. Integers and decimals are acceptable")
+            print("Please try again.")
+    return int(user_input)
+
+def userInputFloatNumberValidation(question):
+    while True:
+        user_input = input(question)
+        try:
+            user_input = float(user_input)
+            break
+        except ValueError:
+            print("No special characters. Please enter numerical value only. Integers and decimals are acceptable")
+            print("Please try again.")
+    return float(user_input)
     
-# def loan_qualification(income, liabilities)
+def loan_qualification(income, liabilities):
     
 
 while True:
@@ -120,25 +145,21 @@ while True:
     choice = choice.strip()
 
     if choice == '1':
-        calculation_method = input("Do you wish to calculate payment with house in mind (Y) or just simple payment calculator (N)? (Y/N)")
+        calculation_method = input("\nDo you wish to calculate payment with house in mind (Y) or just simple payment calculator (N)? (Y/N)")
         calculation_method = calculation_method.upper().strip()
         if calculation_method == 'Y':
-            house_price = int(input("Enter the price of the house that you wish to buy: "))
-            down_payment_percentage = float(input("How much do you want to put down in percentage? (ex: 20%, or 15%, etc): "))
-            # down_payment_percentage = down_payment_percentage.strip()
-            interest_rate = float(input("Enter the interest rate (refer to bankrate.com/mortgages/mortgage_rates/ if you don't know what interest rate to use): "))
-            # interest_rate = interest_rate.strip()
-            amortization_term = int(input("How many years for loan maturity calculated in months (30 years = 360 months, 15 years = 180 months, etc): "))
-            # amortization_term = amortization_term.strip()
-            fico = input("What is your estimated FICO (credit) score (three digits ranging from 500-800+)?: ")
-            # fico = fico.strip()
-            state = input("Which state is the house you're trying to buy located in? (please enter only two letter abbreviated version): ")
+            house_price = userInputIntegerNumberValidation("\nEnter the price of the house that you wish to buy: ")      
+            down_payment_percentage = userInputFloatNumberValidation("\nHow much do you want to put down in percentage? (ex: 20%, or 15%, etc): ")
+            interest_rate = userInputFloatNumberValidation("\nEnter the interest rate (refer to bankrate.com/mortgages/mortgage_rates/ if you don't know what interest rate to use): ")
+            amortization_term = userInputIntegerNumberValidation("\nHow many years for loan maturity calculated in months (30 years = 360 months, 15 years = 180 months, etc): ")
+            fico = userInputIntegerNumberValidation("\nWhat is your estimated FICO (credit) score (three digits ranging from 500-800+)?: ")
+            state = input("\nWhich state is the house you're trying to buy located in? (please enter only two letter abbreviated version): ")
             state = state.strip().upper()
             mortgage_calculator_with_house_price(house_price, down_payment_percentage, interest_rate, amortization_term, fico, state)
         elif calculation_method == 'N':
-            loan_amount = float(input("Enter your loan amount: "))
-            interest_rate = float(input("Enter the interest rate: "))
-            amortization_term = float(input("How many years for loan maturity calculated in months (30 years = 360 months, 15 years = 180 months, etc): "))
+            loan_amount = userInputIntegerNumberValidation("\nEnter your loan amount: ")
+            interest_rate = userInputFloatNumberValidation("\nEnter the interest rate: ")
+            amortization_term = userInputFloatNumberValidation("\nHow many years for loan maturity calculated in months (30 years = 360 months, 15 years = 180 months, etc): ")
             mortgage_calculator(loan_amount, interest_rate, amortization_term)
     elif choice == '5':
         break
