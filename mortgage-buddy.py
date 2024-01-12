@@ -56,14 +56,17 @@ def mortgage_calculator_with_house_price(house_price, down_payment_percentage, i
         LTV = 95
     elif 97 >= LTV > 95:
         LTV = 97
-    else:
-        print("Ineligible down payment percentage for conventional program. Please at least 3\% \or greater for down payment %.")
+    elif LTV > 97:
+        print("Ineligible down payment percentage for conventional program. Please at least 3% or greater for down payment %.")
+    elif LTV <= 80:
+        LTV = 80
     
     ##LTV_range dictionary is for finding insurance premium based on down payment percentage and FICO of the user input.
     LTV_range = {85:{760:0.0019, 740:0.0020, 720: 0.0023, 700:0.0025, 680:0.0028, 660:0.0038, 640:0.0040, 620:0.0044},
                  90:{760:0.0028, 740:0.0038, 720: 0.0046, 700:0.0055, 680:0.0065, 660:0.0090, 640:0.0091, 620:0.0094},
                  95:{760:0.0038, 740:0.0053, 720: 0.0066, 700:0.0078, 680:0.0096, 660:0.0128, 640:0.0133, 620:0.0142},
-                 97:{760:0.0058, 740:0.0070, 720: 0.0087, 700:0.0099, 680:0.0121, 660:0.0154, 640:0.0165, 620:0.0186}}
+                 97:{760:0.0058, 740:0.0070, 720: 0.0087, 700:0.0099, 680:0.0121, 660:0.0154, 640:0.0165, 620:0.0186},
+                 80:{760:0.0000, 740:0.0000, 720: 0.0000, 700:0.0000, 680:0.0000, 660:0.0000, 640:0.0000, 620:0.0000}}
     mortgage_insurance_premium = LTV_range[LTV][fico]
 
     if down_payment_percentage >= 20:
@@ -71,7 +74,7 @@ def mortgage_calculator_with_house_price(house_price, down_payment_percentage, i
     elif down_payment_percentage < 20:
         monthly_payment = (loan_amount * interest_rate_month)/(1-(1+interest_rate_month)**(-1 * amortization_term)) + (loan_amount * (mortgage_insurance_premium/12))
     else:
-        print("Invalid down payment percentage for conventional program. Please at least 3\% \or greater for down payment %.")
+        print("Invalid down payment percentage for conventional program. Please at least 3% or greater for down payment %.")
 
     house_insurance_premium = {'AL':0.006524, 'AK':0.004224, 'AZ':0.005072, 'AR':0.008492, 'CA':0.0049,   'CO':0.008608, 'CT':0.004976, 
                                'DE':0.002716, 'FL':0.007924, 'GA':0.005576, 'HI':0.001528, 'ID':0.00362,  'IL':0.00564,  'ID':0.0049, 
@@ -104,6 +107,7 @@ def mortgage_calculator_with_house_price(house_price, down_payment_percentage, i
           "\n**Est. Home insurance per month: $" + str(monthly_ins) +
           "\n**Mortgage insurance premium: $" + str(monthly_MIP))
     print("\n**Monthly payment total includes mortgage insurance premium, estimated property taxes, and hazard insurance premium relative to the house price**\n")
+    return monthly_payment_rounded
 
 def userInputIntegerNumberValidation(question):
     while True:
@@ -120,7 +124,7 @@ def userInputFloatNumberValidation(question):
     while True:
         user_input = input(question)
         try:
-            user_input = float(user_input)
+            user_input = round(float(user_input),2)
             break
         except ValueError:
             print("No special characters. Please enter numerical value only. Integers and decimals are acceptable")
@@ -130,166 +134,250 @@ def userInputFloatNumberValidation(question):
 def income_calculation_w2():
     income_type_w2 = input("Are you paid by hourly rate (H) or salary rate(S)? Salary rate means your paystub shows flat salary rate per week or per month, etc. Enter either H or S: ").strip().upper()
     if income_type_w2 == 'H':
-        print("""In order to calculate your qualifying income, we need to know if you work consistent or variable hours.
-                By consistent, it means, if you work 40 hours per week (full-time job), then you always work 40 hours per week. Also,
-                40 hours could be covered by any PTO, sick time, or any paid holidays that you make up for loss of hours worked
-                to be paid 40 hours / week in total.
+        print("""\nIn order to calculate your qualifying income, we need to know if you work consistent or variable hours.
+By consistent, it means, if you work 40 hours per week (full-time job), then you always work 40 hours per week. Also,
+40 hours could be covered by any PTO, sick time, or any paid holidays that you make up for loss of hours worked
+to be paid 40 hours / week in total.
 
-                Also, it could mean you work 30 hours/week consistently as if your hours are fixed at 30 hours/week and any time
-                lost from not working is made up by PTO, sick time, paid holidays, or any other payment that makes up for it.
-                
-                By variable hours (considered part-time job), it means you work and get paid as much as you work. For example, 
-                one week you work 30 hours, another week 36 hours, another week 29 hours, another week 39 hours, etc. 
-                When you are paid variable hours your income will be averaged based on YTD and previous 2 years' earnings (base YTD only).
-            
-                If you work variable hours, try to guess how many hours you work on average per week. Please note that actual calculation
-                of your income will be based on YTD average which will be calculated by the underwriter at a mortgage lending company.                    
-                """)
-        hours_worked = input("Please enter the number of hours worked as base regular pay per week: ")
-        hourly_rate = input("Please enter your hourly rate: ")
+Also, it could mean you work 30 hours/week consistently as if your hours are fixed at 30 hours/week and any time
+lost from not working is made up by PTO, sick time, paid holidays, or any other payment that makes up for it.
+
+By variable hours (considered part-time job), it means you work and get paid as much as you work. For example, 
+one week you work 30 hours, another week 36 hours, another week 29 hours, another week 39 hours, etc. 
+When you are paid variable hours your income will be averaged based on YTD and previous 2 years' earnings (base YTD only).
+
+If you work variable hours, try to guess how many hours you work on average per week. Please note that actual calculation
+of your income will be based on YTD average which will be calculated by the underwriter at a mortgage lending company.                    
+""")
+        hours_worked = userInputFloatNumberValidation("Please enter the number of hours worked as base regular pay per week: ")
+        hourly_rate = userInputFloatNumberValidation("Please enter your hourly rate: ")
         income = (hourly_rate * hours_worked * 52) / 12 
         return income
     if income_type_w2 == 'S':
-        income = input("Enter your monthly salary: ")
+        income = userInputFloatNumberValidation("Enter your monthly salary: ")
         return income
 
 def income_calculation_self_employment():
-    total_self_employment_income = 0
+    total_self_employment_income = float(0)
     while True:
-        self_employment_type = input("""Please enter all businesses' income. Choose one of the options to enter each business entity's income.
-Otherwise, if you're done, please enter 0.
-    Options:
+        self_employment_type = input("""\nPlease enter all businesses' income. Choose one of the options to enter each business entity's income.
+Please select from 1-5.  choose 5.
+  Options:
     1. C (for schedule C)
     2. 1065
     3. 1120S
     4. 1120
-    5. 0
+    5. Exit
     : """).upper()
-        if self_employment_type == 'C':
-            calculation_method = input("Do you want to enter the total income estimate yourself (1) or use our calculator for exact details? (2) - Enter 1 or 2: ")
-            if calculation_method == '1':
-                income = input("Enter your total income per month: ")
+        if self_employment_type == '1':
+            calculation_method = userInputIntegerNumberValidation("Do you want to enter the total income estimate yourself(1) or use our calculator for exact details(2)? - Enter 1 or 2: ")
+            if calculation_method == 1:
+                income = userInputFloatNumberValidation("Enter your total income per month: ")
                 total_self_employment_income += income
-            elif calculation_method == '2':
-                print("You'll need most recent two years tax return. Let's start with the most recent year's earnings. Please flip to your schedule C pages in your tax return.\n")
+            elif calculation_method == 2:
+                print("\nYou'll need most recent two years tax return. Let's start with the most recent year's earnings. Please flip to your schedule C pages in your tax return.\n")
                 total_income = {'recent_year_income': 0, 'previous_year_income': 0}
                 for each_year in total_income: 
-                    net_profit = input("Enter net profit (line 31) : ")
-                    other_income_or_loss = input("Other income or other loss (line 6 - enter negative number if other INCOME, and positive if other LOSS): ")
-                    depletion = input("Enter depletion (line 12): ")
-                    depreciation = input("Enter depreciation (line 13): ")
-                    deductible_meals = input("Enter deductible meals (line 24(b)): ")
-                    amortization = input("Enter amortization (Part V other expenses): ")
-                    business_use_of_home = input("Enter business use of home (line 30): ")
+                    net_profit = userInputFloatNumberValidation("Enter net profit (line 31) : ")
+                    other_income_or_loss = userInputFloatNumberValidation("Other income or other loss (line 6 - enter negative number if other INCOME, and positive if other LOSS): ")
+                    depletion = userInputFloatNumberValidation("Enter depletion (line 12): ")
+                    depreciation = userInputFloatNumberValidation("Enter depreciation (line 13): ")
+                    deductible_meals = userInputFloatNumberValidation("Enter deductible meals (line 24(b)): ")
+                    amortization = userInputFloatNumberValidation("Enter amortization (Part V other expenses): ")
+                    business_use_of_home = userInputFloatNumberValidation("Enter business use of home (line 30): ")
                     subtotal = net_profit + other_income_or_loss + depletion + depreciation - deductible_meals + amortization + business_use_of_home
                     total_income[each_year] = subtotal 
-                    if total_income['recent_year_income'] is not 0 and total_income['previous_year_income'] is 0:
-                        print("Now please enter figures from schedule C for your previous year (the year before the one you just entered). ")
+                    if total_income['recent_year_income'] != 0 and total_income['previous_year_income'] == 0:
+                        print("\nNow please enter figures from schedule C for your previous year (the year before the one you just entered).\n ")
                 if total_income['previous_year_income'] > total_income['recent_year_income']:
                     income = round((total_income['recent_year_income'])/12,2)
                     total_self_employment_income += income
-                    return income + print("Your monthly qualifying income from this schedule C business is $" + income + ".\n")
+                    print("Your monthly qualifying income from this schedule C business is $" + income + ".\n")
                 elif total_income['recent_year_income'] >= total_income['previous_year_income']:
                     income = round((total_income['previous_year_income'] + total_income['recent_year_income'])/24, 2)
                     total_self_employment_income += income
-                    return income + print("Your monthly qualifying income from this schedule C business is $" + income + ".\n")
-        if self_employment_type == '1065' or '1120S':
-            calculation_method = input("Do you want to enter the total income estimate yourself (1) or use our calculator for exact details? (2) - Enter 1 or 2: ")
-            if calculation_method == '1':
-                income == input("Enter your total income per month: ")
+                    print("Your monthly qualifying income from this schedule C business is $" + str(income) + ".\n")
+        elif self_employment_type == '2' or self_employment_type == '3':
+            calculation_method = userInputIntegerNumberValidation("Do you want to enter the total income estimate yourself(1) or use our calculator for exact details(2)? - Enter 1 or 2: ")
+            if calculation_method == 1:
+                income = userInputFloatNumberValidation("Enter your total income per month: ")
                 total_self_employment_income += income
-            elif calculation_method == '2':
+            elif calculation_method == 2:
                 print("You'll need most recent two years business tax return. Let's start with the most recent year's earnings. Please flip to your business tax return (1065 or 1120S) to enter the following.\n")
                 total_income = {'recent_year_income': 0, 'previous_year_income': 0}
                 for each_year in total_income:
-                    self_employment_ownership = input("Enter the amount of percentage of ownership you have in this business: ") 
+                    self_employment_ownership = userInputFloatNumberValidation("Enter the amount of percentage of ownership you have in this business: ") 
                     if self_employment_ownership >= 25:
-                        schedule_K1 = input("Enter K-1 box 1,2,3 total (enter negative number if the sum is negative): ")
+                        schedule_K1 = userInputFloatNumberValidation("Enter K-1 box 1,2,3 total (enter negative number if the sum is negative): ")
                         liquidity_test = input("Does your schedule K-1 show distribution (box 19 for 1065, box 16 with code D for 1120S) that is equal to or higher than box 1 amount? (Y/N): ").upper()
                         if liquidity_test == "Y":
-                            schedule_K1 = round(float(schedule_K1),2)
+                            schedule_K1 = schedule_K1
                         elif liquidity_test == "N":
                             schedule_K1 = round(float(input("Enter the distribution amount (box 19 for 1065, box 16 with code D for 1120S): ")),2)
-                        other_income_or_loss = input("Other income or other loss (line 7 for 1065 / line 5 for 1120S - enter negative number if other INCOME, and positive if other LOSS): ")
-                        depletion = input("Enter depletion (line 17 for 1065, line 15 for 1120S): ")
-                        depreciation = input("Enter depreciation (line 16c for 1065, line 14 for 1120S): ")
-                        deductible_meals = input("Enter deductible meals (line M-1 - 4(b) for 1065, line M-1 - 3(b) for 1120S): ")
-                        mortgage_notes_bonds_payable_in_less_than_one_year = input("Enter mortgage, notes, bonds, payable in less than 1 year (schedule L, line 16 for 1065, line 17 for 1120S): ")
-                        amortization = input("Enter amortization (line 21 for 1065, line 20 for 1120S) - PLEASE ENTER AMORTIZATION EXPENSE ONLY from other deductions which is itemized and attached as statement in the end: ")
-                        w_2 = input("If you received W-2 income from this job, enter the total W-2 income (box 5) amount: ")
-                        subtotal = schedule_K1 + other_income_or_loss + depletion + depreciation - deductible_meals + amortization + business_use_of_home + w_2 - mortgage_notes_bonds_payable_in_less_than_one_year
+                        other_income_or_loss = userInputFloatNumberValidation("Other income or other loss (line 7 for 1065 / line 5 for 1120S - enter negative number if other INCOME, and positive if other LOSS): ")
+                        depletion = userInputFloatNumberValidation("Enter depletion (line 17 for 1065, line 15 for 1120S): ")
+                        depreciation = userInputFloatNumberValidation("Enter depreciation (line 16c for 1065, line 14 for 1120S): ")
+                        deductible_meals = userInputFloatNumberValidation("Enter deductible meals (line M-1 - 4(b) for 1065, line M-1 - 3(b) for 1120S): ")
+                        mortgage_notes_bonds_payable_in_less_than_one_year = userInputFloatNumberValidation("Enter mortgage, notes, bonds, payable in less than 1 year (schedule L, line 16 for 1065, line 17 for 1120S): ")
+                        amortization = userInputFloatNumberValidation("Enter amortization (line 21 for 1065, line 20 for 1120S) - PLEASE ENTER AMORTIZATION EXPENSE ONLY from other deductions which is itemized and attached as statement in the end: ")
+                        w_2 = userInputFloatNumberValidation("If you received W-2 income from this job, enter the total W-2 income (box 5) amount: ")
+                        subtotal = schedule_K1 + other_income_or_loss + depletion + depreciation - deductible_meals + amortization + w_2 - mortgage_notes_bonds_payable_in_less_than_one_year
                         total_income[each_year] = subtotal 
-                        if total_income['recent_year_income'] is not 0 and total_income['previous_year_income'] is 0:
-                            print("Now please enter figures from schedule C for your previous year (the year before the one you just entered). ")
+                        if total_income['recent_year_income'] != 0 and total_income['previous_year_income'] == 0:
+                            print("\nNow please enter figures from schedule C for your previous year (the year before the one you just entered).\n ")
                     elif self_employment_ownership < 25:
-                        print("If you own less than 25\% \of the business, then you're not considered self-employed. You may still use K-1 income that is distributed to you.")
-                        k1_income = input("Enter lesser of the K-1 box 1 or box 19 for 1065 or box 16 with code D for 1120S: ")
-                        w2_income = input("If you received any W-2 income from this business, then enter the amount from box 5: ")
+                        print("If you own less than 25% of the business, then you're not considered self-employed. You may still use K-1 income that is distributed to you.")
+                        k1_income = userInputFloatNumberValidation("Enter lesser of the K-1 box 1 or box 19 for 1065 or box 16 with code D for 1120S: ")
+                        w2_income = userInputFloatNumberValidation("If you received any W-2 income from this business, then enter the amount from box 5: ")
                         total_income[each_year] = k1_income + w2_income
-                        if total_income['recent_year_income'] is not 0 and total_income['previous_year_income'] is 0:
+                        if total_income['recent_year_income'] != 0 and total_income['previous_year_income'] == 0:
                             print("Do the same for previous year K-1.")
                 if total_income['previous_year_income'] > total_income['recent_year_income']:
                     income = round((total_income['recent_year_income'])/12,2)
                     total_self_employment_income += income
-                    return income + print("Your monthly qualifying income from this 1065 or 1120S business is $" + income + ".\n")
+                    print("Your monthly qualifying income from this 1065 or 1120S business is $" + str(income) + ".\n")
                 elif total_income['recent_year_income'] >= total_income['previous_year_income']:
                     income = round((total_income['previous_year_income'] + total_income['recent_year_income'])/24, 2)
                     total_self_employment_income += income
-                    return income + print("Your monthly qualifying income from this schedule C business is $" + income + ".\n")
-        if self_employment_type == '1120':
-            calculation_method = input("Do you want to enter the total income estimate yourself (1) or use our calculator for exact details? (2) - Enter 1 or 2: ")
-            if calculation_method == '1':
-                income == input("Enter your total income per month: ")
+                    print("Your monthly qualifying income from this schedule C business is $" + str(income) + ".\n")
+        elif self_employment_type == '4':
+            calculation_method = userInputIntegerNumberValidation("Do you want to enter the total income estimate yourself(1) or use our calculator for exact details(2)? - Enter 1 or 2: ")
+            if calculation_method == 1:
+                income == userInputFloatNumberValidation("Enter your total income per month: ")
                 total_self_employment_income += income
-            elif calculation_method == '2':
+            elif calculation_method == 2:
                 print("You'll need most recent two years business tax return. Let's start with the most recent year's earnings. Please flip to your business tax return (1120) to enter the following.\n")
                 total_income = {'recent_year_income': 0, 'previous_year_income': 0}
                 for each_year in total_income:
-                    depreciation = input("Enter depreciation (line 20): ")
-                    depletion = input("Enter depletion (line 21): ")
-                    amortization = input("Enter amortization or casualty loss (line 26) - PLEASE ENTER AMORTIZATION EXPENSE ONLY from other deductions which is itemized and attached as statement in the end: ")
-                    other_income_or_loss = input("Other income or other loss (line 10 - enter negative number if other INCOME, and positive if other LOSS): ")
-                    net_operating_loss = input("Enter net operating loss (line 29(c)): ")
-                    taxable_income_or_loss = input("Enter taxable income or loss (line 30): ")
-                    total_tax = input("Enter total tax (line 31): ")
-                    mortgage_notes_bonds_payable_in_less_than_one_year = input("Enter mortgage, notes, bonds, payable in less than 1 year (schedule L, line 17): ")
-                    deductible_meals = input("Enter deductible meals (line M-1 - 3(b)): ")
+                    depreciation = userInputFloatNumberValidation("Enter depreciation (line 20): ")
+                    depletion = userInputFloatNumberValidation("Enter depletion (line 21): ")
+                    amortization = userInputFloatNumberValidation("Enter amortization or casualty loss (line 26) - PLEASE ENTER AMORTIZATION EXPENSE ONLY from other deductions which is itemized and attached as statement in the end: ")
+                    other_income_or_loss = userInputFloatNumberValidation("Other income or other loss (line 10 - enter negative number if other INCOME, and positive if other LOSS): ")
+                    net_operating_loss = userInputFloatNumberValidation("Enter net operating loss (line 29(c)): ")
+                    taxable_income_or_loss = userInputFloatNumberValidation("Enter taxable income or loss (line 30): ")
+                    total_tax = userInputFloatNumberValidation("Enter total tax (line 31): ")
+                    mortgage_notes_bonds_payable_in_less_than_one_year = userInputFloatNumberValidation("Enter mortgage, notes, bonds, payable in less than 1 year (schedule L, line 17): ")
+                    deductible_meals = userInputFloatNumberValidation("Enter deductible meals (line M-1 - 3(b)): ")
                     subtotal = depreciation + depletion + amortization + net_operating_loss + taxable_income_or_loss - total_tax - mortgage_notes_bonds_payable_in_less_than_one_year + other_income_or_loss - deductible_meals
-                    self_employment_ownership = input("Enter the amount of percentage of ownership you have in this business: ")
-                    if self_employment_ownership == 100:
-                        w2_income = input("If you received any W-2 income from this business, then enter the amount from box 5: ")
+                    self_employment_ownership = userInputFloatNumberValidation("Enter the amount of percentage of ownership you have in this business: ")
+                    if self_employment_ownership == 100.00:
+                        w2_income = userInputFloatNumberValidation("If you received any W-2 income from this business, then enter the amount from box 5: ")
                         total_income[each_year] = subtotal + w2_income
-                    elif self_employment_ownership <100 or subtotal < 0:
-                        w2_income = input("If you received any W-2 income from this business, then enter the amount from box 5: ")
+                    elif self_employment_ownership <100.00 or subtotal < 0.00:
+                        w2_income = userInputFloatNumberValidation("If you received any W-2 income from this business, then enter the amount from box 5: ")
                         total_income[each_year] = subtotal + w2_income
-                    elif self_employment_ownership <100 and subtotal > 0:
+                    elif self_employment_ownership <100.00 and subtotal > 0.00:
                         print("In order to qualify business income, you must be 100% 'owner' of the business. You may only qualify W-2 income received from this business.")
-                        w2_income = input("If you received any W-2 income from this business, then enter the amount from box 5: ")
+                        w2_income = userInputFloatNumberValidation("If you received any W-2 income from this business, then enter the amount from box 5: ")
                         total_income[each_year] = w2_income
-                    if total_income['recent_year_income'] is not 0 and total_income['previous_year_income'] is 0:
+                    if total_income['recent_year_income'] != 0 and total_income['previous_year_income'] == 0:
                         print("Now please enter figures from your previous year (the year before the one you just entered).")
                 if total_income['previous_year_income'] > total_income['recent_year_income']:
                     income = round((total_income['recent_year_income'])/12,2)
                     total_self_employment_income += income
-                    return income + print("Your monthly qualifying income from this 1120 business is $" + income + ".\n")
+                    print("Your monthly qualifying income from this 1120 business is $" + str(income) + ".\n")
                 elif total_income['recent_year_income'] >= total_income['previous_year_income']:
                     income = round((total_income['previous_year_income'] + total_income['recent_year_income'])/24, 2)
                     total_self_employment_income += income
-                    return income + print("Your monthly qualifying income from this 1120 business is $" + income + ".\n")            
-        if self_employment_type == '0':
+                    print("Your monthly qualifying income from this 1120 business is $" + str(income) + ".\n")            
+        elif self_employment_type == '5':
+            print(total_self_employment_income)
             print("Your total self employment income from all business(es) is: " + str(total_self_employment_income))
             break
     return total_self_employment_income
 
+def calculate_liability():
+    mortgages_owned = input("""\n   To confirm if you can qualify for a mortgage, we will need to know the house price and loan amount you'll be getting and how many mortgages you have. 
+                            
+If the house that you're trying to purchase is the only house, then enter 1.
+                            
+If you have multiple houses with or without mortgages, enter 2: """)
+    if mortgages_owned == '1':
+        house_price = userInputIntegerNumberValidation("\nEnter the price of the house that you wish to buy: ")      
+        down_payment_percentage = userInputFloatNumberValidation("\nHow much do you want to put down in percentage? (ex: 20%, or 15%, etc): ")
+        interest_rate = userInputFloatNumberValidation("\nEnter the interest rate (refer to bankrate.com/mortgages/mortgage_rates/ if you don't know what interest rate to use): ")
+        amortization_term = userInputIntegerNumberValidation("\nHow many years for loan maturity calculated in months (30 years = 360 months, 15 years = 180 months, etc): ")
+        fico = userInputIntegerNumberValidation("\nWhat is your estimated FICO (credit) score (three digits ranging from 500-800+)?: ")
+        state = input("\nWhich state is the house you're trying to buy located in? (please enter only two letter abbreviated version): ")
+        state = state.strip().upper()
+        subject_mortgage = mortgage_calculator_with_house_price(house_price, down_payment_percentage, interest_rate, amortization_term, fico, state)
+        installment_debts = userInputFloatNumberValidation("Enter total amount of monthly installment debts (auto loan, personal loan, time share, or any other loan): ")
+        student_loans = userInputFloatNumberValidation("Enter the total amount of monthly student loan debts. If the payment is deferred, use 1% of the balance as monthly payment amount: ")
+        credit_card_debts = userInputFloatNumberValidation("Enter the total amount of all of your credit cards' monthly required minimum payment: ")
+        child_support_or_alimony = userInputFloatNumberValidation("Enter any monthly obligated child support or alimony being paid: ")
+        subtotal_liab = subject_mortgage + installment_debts + student_loans + credit_card_debts + child_support_or_alimony
+        subtotal_liab = float(subtotal_liab)
+        print("Your total monthly debts is: $" + str(subtotal_liab))
+        return subtotal_liab
+    if mortgages_owned == '2':
+        #this one looks same as above, but it has other_reo_pitia added to account for multiple mortgages and the subtotal_liab accounts for the difference.
+        print("Let's start with subject property's house price / mortgage payments / etc.")
+        house_price = userInputIntegerNumberValidation("\nEnter the price of the house that you wish to buy: ")      
+        down_payment_percentage = userInputFloatNumberValidation("\nHow much do you want to put down in percentage? (ex: 20%, or 15%, etc): ")
+        interest_rate = userInputFloatNumberValidation("\nEnter the interest rate (refer to bankrate.com/mortgages/mortgage_rates/ if you don't know what interest rate to use): ")
+        amortization_term = userInputIntegerNumberValidation("\nHow many years for loan maturity calculated in months (30 years = 360 months, 15 years = 180 months, etc): ")
+        fico = userInputIntegerNumberValidation("\nWhat is your estimated FICO (credit) score (three digits ranging from 500-800+)?: ")
+        state = input("\nWhich state is the house you're trying to buy located in? (please enter only two letter abbreviated version): ")
+        state = state.strip().upper()
+        subject_mortgage = mortgage_calculator_with_house_price(house_price, down_payment_percentage, interest_rate, amortization_term, fico, state)
+        other_reo_pitia = userInputFloatNumberValidation("Enter the monthly PITIA (principal / interest / property tax / insurance / HOA dues) of other real estates owned: ")
+        installment_debts = userInputFloatNumberValidation("Enter total amount of monthly installment debts (auto loan, personal loan, time share, or any other loan): ")
+        student_loans = userInputFloatNumberValidation("Enter the total amount of monthly student loan debts. If the payment is deferred, use 1% of the balance as monthly payment amount: ")
+        credit_card_debts = userInputFloatNumberValidation("Enter the total amount of all of your credit cards' monthly required minimum payment: ")
+        child_support_or_alimony = userInputFloatNumberValidation("Enter any monthly obligated child support or alimony being paid: ")
+        subtotal_liab = subject_mortgage + installment_debts + student_loans + credit_card_debts + child_support_or_alimony + other_reo_pitia
+        print("Your total monthly debts is: $" + str(subtotal_liab))
+        subtotal_liab = float(subtotal_liab)
+        return subtotal_liab
+
 def liabilities():
-    print("under construction")
+    print("\n   In order to check for your loan qualification, we'll need to know your liabilities (debts) as well. Please answer the following questions.")
+    liabilities_total = float(0)
+    bankruptcy = input("\nBefore we proceed into details, did you have any type of bankruptcy or short sale within the past 4 years? (Y/N): ").upper()
+    if bankruptcy == 'Y':
+        print("\nUnfortunately, if you had any bankruptcy or short sale within the last 4 years, you need to wait until 4 years has passed in order to get mortgage financing.")
+        liabilities_total = 0
+    elif bankruptcy == 'N':
+        foreclosure = input("\nHave you had any foreclosure within the last 7 years? (Y/N): ").upper()
+        if foreclosure == 'Y':
+            foreclosure_and_bankruptcy = input("\nWas the mortgage on that foreclosed property discharged through a bankruptcy and 4 years has passed since bankruptcy being discharged? (Y/N): ").upper()
+            if foreclosure_and_bankruptcy == 'Y':
+                subtotal_liab = calculate_liability()
+                liabilities_total += subtotal_liab
+            elif foreclosure_and_bankruptcy == 'N':
+                print("\nUnfortunately, if you had a foreclosure within the last 7 years, you need to wait until 7 years has passed in order to get mortgage financing.")
+        elif foreclosure == 'N': 
+            subtotal_liab = calculate_liability()
+            liabilities_total += subtotal_liab
+    return liabilities_total
+        
 
 def loan_qualification(income, liabilities):
-    income = 10    
+    if income == 0.00:
+        print("\nSorry you have entered zero income. You are ineligible to proceed with this loan program.")
+    else:
+        dti = round(float(liabilities/income),2)
+        print("\nYour DTI is: " + str(dti) + "%")
+        if 0.45 <= dti < 0.5:        
+            print("""\nCongratulations! Your debt to income (DTI) ratio meets general eligibility requirement for conventional program. 
+However, DTI ratio that is greater than 45% may result in ineligible findings for final approval. You may be asked to provide additional assets 
+as reserves or pay off additional debts to lower the DTI. """)    
+            print("""\n***Disclaimer***
+Please be advised that this is a general helpful tool for you to evaluate your financing situation and not an actual approval for loan. 
+Mortgage lender may ask for additional requirements and this is different on case by case per inidividuals applying for the loan. """)
+        elif 0 < dti < 0.45:
+            print("\nCongratulations! Your debt to income (DTI) ratio meets general eligibility requirement for conventional program. You're most likely to get approved for financing! ")
+            print("""\n***Disclaimer***\n
+Please be advised that this is a general helpful tool for you to evaluate your financing situation and not an actual approval for loan. 
+Mortgage lender may ask for additional requirements and this is different on case by case per inidividuals applying for the loan. """)
+        elif dti == 0:
+            print("\nUnfortunately, due to your significant derogatory credit event (bankruptcy / foreclosure), you're ineligible for financing at this time.")
+        elif dti > 0.5:
+            print("\nUnfortunately, your DTI is over 50% which is ineligible for financing for conventional mortgage program. Please consider adding a co-applicant or restructure to be within 50% DTI to be eligible.")
 
 while True:
 
-    print("""Main menu:
+    print("""\n\nMain menu:
       
       1. Calculate mortgage payment
 
@@ -326,7 +414,7 @@ while True:
     elif choice == '2':
         print("\nIn order to help us evaluate your qualification for a conventional mortgage loan program, we'll need to ask you some questions.")
         print("\nPlease answer the following questions: ")
-        income_type = input("Please confirm if you're paid W-2 as a wage earner (A) or if you're self-employed (B), or both (C): ")
+        income_type = input("\nPlease confirm if you're paid W-2 as a wage earner (A) or if you're self-employed (B), or both (C): ")
         income_type = income_type.strip().upper()
         if income_type == 'A':
             income_w2 = income_calculation_w2()
