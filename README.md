@@ -15,6 +15,9 @@ This is a terminal app program that helps you calculate mortgage payment based o
 
 ## Installation
 You may run this in your terminal directly or download the `mortgage-buddy.exe` file to simply double click the `.exe` file.
+You can click on release on the right side, or [click here](https://github.com/ericeya/mortgage-buddy/releases/tag/mortgage-buddy) that will take you to the download release page. Then click on `mortgage-buddy.exe` file to download for use.
+
+_Windows may give you a warning for running this file but I assure you, there's no malware nor any harmful content in the file._
 
 ## Usage
 Choose the menu option of your choice:
